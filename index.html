@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>1日の時間割タイムライン</title>
+  <script src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
+  <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" />
+  <style>
+    body { font-family: sans-serif; padding: 10px; }
+    #timeline { border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>1日の時間割（ドラッグで変更可能）</h2>
+  <div id="timeline"></div>
+
+  <script>
+    // 今日の日付
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+
+    // サンプルデータ
+    const items = new vis.DataSet([
+      { id: 1, content: '朝のルーチン', start: `${dateStr}T06:00:00`, end: `${dateStr}T07:00:00` },
+      { id: 2, content: '執筆',         start: `${dateStr}T09:00:00`, end: `${dateStr}T11:00:00` },
+      { id: 3, content: '昼休憩',       start: `${dateStr}T12:00:00`, end: `${dateStr}T13:00:00` }
+    ]);
+
+    // タイムラインのオプション
+    const options = {
+      editable: {
+        updateTime: true, // 時間変更を許可
+        updateGroup: false,
+        remove: true,
+        add: true
+      },
+      start: `${dateStr}T00:00:00`,
+      end: `${dateStr}T24:00:00`,
+      min: `${dateStr}T00:00:00`,
+      max: `${dateStr}T24:00:00`,
+      zoomMin: 1000 * 60 * 60, // 最小1時間
+      zoomMax: 1000 * 60 * 60 * 24, // 最大1日
+      orientation: 'top',
+      stack: false
+    };
+
+    // タイムライン作成
+    const container = document.getElementById('timeline');
+    const timeline = new vis.Timeline(container, items, options);
+
+    // 変更イベント
+    timeline.on('change', function (props) {
+      console.log('変更されたID:', props.items);
+      console.log('新しいデータ:', items.get(props.items));
+    });
+  </script>
+</body>
+</html>
