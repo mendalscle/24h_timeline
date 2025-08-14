@@ -24,25 +24,29 @@
 
     // サンプルデータ
     const items = new vis.DataSet([
-      { id: 1, content: '朝のルーチン', start: `${dateStr}T06:00:00`, end: `${dateStr}T07:00:00` },
-      { id: 2, content: '執筆',         start: `${dateStr}T09:00:00`, end: `${dateStr}T11:00:00` },
-      { id: 3, content: '昼休憩',       start: `${dateStr}T12:00:00`, end: `${dateStr}T13:00:00` }
+      { id: 1, content: '朝のルーチン', start: `${dateStr}T06:00:00`, end: `${dateStr}T07:00:00`, editable: { updateTime: true } },
+      { id: 2, content: '執筆',         start: `${dateStr}T09:00:00`, end: `${dateStr}T11:00:00`, editable: { updateTime: true } },
+      { id: 3, content: '昼休憩',       start: `${dateStr}T12:00:00`, end: `${dateStr}T13:00:00`, editable: { updateTime: true } }
     ]);
 
     // タイムラインのオプション
     const options = {
       editable: {
-        updateTime: true, // 時間変更を許可
+        add: true,       // バー追加
+        remove: true,    // バー削除
+        updateTime: true, // バー全体移動
         updateGroup: false,
-        remove: true,
-        add: true
+        overrideItems: false
+      },
+      // これを追加
+      editable: true, // 全体的に編集可
+      margin: {
+        item: 10
       },
       start: `${dateStr}T00:00:00`,
       end: `${dateStr}T24:00:00`,
       min: `${dateStr}T00:00:00`,
       max: `${dateStr}T24:00:00`,
-      zoomMin: 1000 * 60 * 60, // 最小1時間
-      zoomMax: 1000 * 60 * 60 * 24, // 最大1日
       orientation: 'top',
       stack: false
     };
