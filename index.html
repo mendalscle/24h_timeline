@@ -15,12 +15,8 @@
   <div id="timeline"></div>
 
   <script>
-    // 今日の日付
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
+    // 固定のダミー日付（どの日でもOK。時間だけ使う）
+    const baseDate = "1970-01-01";
 
     // サンプルデータ
     const items = new vis.DataSet([
@@ -43,12 +39,15 @@
       margin: {
         item: 10
       },
-      start: `${dateStr}T00:00:00`,
-      end: `${dateStr}T24:00:00`,
-      min: `${dateStr}T00:00:00`,
-      max: `${dateStr}T24:00:00`,
+      start: `${baseDate}T00:00:00`,
+      end: `${baseDate}T24:00:00`,
+      min: `${baseDate}T00:00:00`,
+      max: `${baseDate}T24:00:00`,
+      zoomMin: 1000 * 60 * 60,       // 最小表示幅 = 1時間
+      zoomMax: 1000 * 60 * 60 * 24,  // 最大表示幅 = 24時間
       orientation: 'top',
-      stack: false
+      stack: false,
+      timeAxis: { scale: 'hour', step: 1 } // 1時間ごとの目盛り
     };
 
     // タイムライン作成
