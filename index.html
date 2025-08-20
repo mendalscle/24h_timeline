@@ -8,6 +8,10 @@
   <style>
     body { font-family: sans-serif; padding: 10px; }
     #timeline { border: 1px solid #ccc; }
+    /* 日付ラベル（曜日・月など）を非表示にする */
+    .vis-time-axis .vis-text.vis-major {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -45,7 +49,6 @@
       max: `${baseDate}T24:00:00`,
       orientation: 'top',
       stack: false,
-      timeAxis: { scale: 'hour', step: 1 } // ← 時間だけを表示
     };
 
     // タイムライン作成
