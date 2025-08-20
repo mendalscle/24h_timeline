@@ -18,11 +18,11 @@
     // 固定のダミー日付（どの日でもOK。時間だけ使う）
     const baseDate = "1970-01-01";
 
-    // サンプルデータ
+    // アイテム（コマ）データ
     const items = new vis.DataSet([
-      { id: 1, content: '朝のルーチン', start: `${dateStr}T06:00:00`, end: `${dateStr}T07:00:00`, editable: { updateTime: true } },
-      { id: 2, content: '執筆',         start: `${dateStr}T09:00:00`, end: `${dateStr}T11:00:00`, editable: { updateTime: true } },
-      { id: 3, content: '昼休憩',       start: `${dateStr}T12:00:00`, end: `${dateStr}T13:00:00`, editable: { updateTime: true } }
+      { id: 1, content: '朝のルーチン', start: `${baseDate}T06:00:00`, end: `${baseDate}T07:00:00`, editable: { updateTime: true } },
+      { id: 2, content: '執筆',         start: `${baseDate}T09:00:00`, end: `${baseDate}T11:00:00`, editable: { updateTime: true } },
+      { id: 3, content: '昼休憩',       start: `${baseDate}T12:00:00`, end: `${baseDate}T13:00:00`, editable: { updateTime: true } }
     ]);
 
     // タイムラインのオプション
