@@ -49,6 +49,11 @@
       max: `${baseDate}T24:00:00`,
       orientation: 'top',
       stack: false,
+      snap: function (date, scale, step) {
+        const hour = 60 * 60 * 1000; // 1時間（ミリ秒）
+        return Math.round(date / (15 * 60 * 1000)) * (15 * 60 * 1000); 
+        // ← 15分単位でスナップ
+      },
     };
 
     // タイムライン作成
