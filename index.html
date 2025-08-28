@@ -22,12 +22,57 @@
     // 固定のダミー日付（どの日でもOK。時間だけ使う）
     const baseDate = "1970-01-01";
 
-    // アイテム（コマ）データ
-    const items = new vis.DataSet([
+    // データベース初期化
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('timelineDB', 1);
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains('items')) {
+            db.createObjectStore('items', { keyPath: 'id' });
+          }
+        };
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+      });
+    }
+
+    // 保存
+    async function saveItem(item) {
+      const db = await openDB();
+      const tx = db.transaction('items', 'readwrite');
+      const store = tx.objectStore('items');
+      store.put(item);
+      return tx.complete;
+    }
+
+    // 削除
+    async function deleteItem(id) {
+      const db = await openDB();
+      const tx = db.transaction('items', 'readwrite');
+      const store = tx.objectStore('items');
+      store.delete(id);
+      return tx.complete;
+    }
+
+    // 取得
+    async function loadItems() {
+      const db = await openDB();
+      const tx = db.transaction('items', 'readonly');
+      const store = tx.objectStore('items');
+      return new Promise((resolve, reject) => {
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    // 初期ダミー
+    const defaultItems = [
       { id: 1, content: '朝のルーチン', start: `${baseDate}T06:00:00`, end: `${baseDate}T07:00:00`, editable: { updateTime: true } },
       { id: 2, content: '執筆',         start: `${baseDate}T09:00:00`, end: `${baseDate}T11:00:00`, editable: { updateTime: true } },
       { id: 3, content: '昼休憩',       start: `${baseDate}T12:00:00`, end: `${baseDate}T13:00:00`, editable: { updateTime: true } }
-    ]);
+    ];
 
     // タイムラインのオプション
     const options = {
@@ -38,11 +83,8 @@
         updateGroup: false,
         overrideItems: false
       },
-      // これを追加
       editable: true, // 全体的に編集可
-      margin: {
-        item: 10
-      },
+      margin: { item: 10 },
       start: `${baseDate}T00:00:00`,
       end: `${baseDate}T24:00:00`,
       min: `${baseDate}T00:00:00`,
@@ -60,6 +102,36 @@
     const container = document.getElementById('timeline');
     const timeline = new vis.Timeline(container, items, options);
 
+    // ページロード時に保存データをロード
+    loadItems().then(savedItems => {
+      if (savedItems.length) {
+        items.add(savedItems);
+      } else {
+        items.add(defaultItems);
+      }
+    });
+
+    // 変更イベント
+    timeline.on('change', function(props) {
+      props.items.forEach(async id => {
+        const item = items.get(id);
+        await saveItem(item);
+      });
+    });
+
+    // 削除イベント
+    timeline.on('remove', function(props) {
+      props.items.forEach(async id => {
+        await deleteItem(id);
+      });
+    });
+
+    // 追加イベント：新規作成時に保存
+    timeline.on('add', function(props) {
+      const item = items.get(props.item);
+      if (item) saveItem(item);
+    });
+    
     // 変更イベント
     timeline.on('change', function (props) {
       console.log('変更されたID:', props.items);
