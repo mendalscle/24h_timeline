@@ -98,12 +98,15 @@
       },
     };
 
+    const items = new vis.DataSet([]); // ここで先に定義
+
     // タイムライン作成
     const container = document.getElementById('timeline');
     const timeline = new vis.Timeline(container, items, options);
 
     // ページロード時に保存データをロード
     loadItems().then(savedItems => {
+      console.log('IndexedDBから読み込んだデータ:', savedItems);
       if (savedItems.length) {
         items.add(savedItems);
       } else {
