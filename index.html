@@ -129,10 +129,25 @@
       });
     });
 
-    // 追加イベント：新規作成時に保存
+    // 追加イベントをカスタマイズ
     timeline.on('add', function(props) {
-      const item = items.get(props.item);
-      if (item) saveItem(item);
+      timeline.cancelAdd(); // デフォルトの追加をキャンセル
+      const label = prompt('アイテム名を入力してください', '新しいアイテム');
+      if (!label) return;
+
+      const startTime = new Date(props.item.start);
+      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // デフォルト1時間
+
+      const newItem = {
+        id: Date.now(),
+        content: label,
+        start: startTime.toISOString(),
+        end: endTime.toISOString(),
+        editable: { updateTime: true, updateGroup: false }
+      };
+
+      items.add(newItem);
+      saveItem(newItem);
     });
     
     // 変更イベント
