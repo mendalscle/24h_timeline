@@ -39,32 +39,53 @@
 
     // 保存
     async function saveItem(item) {
-      const db = await openDB();
-      const tx = db.transaction('items', 'readwrite');
-      const store = tx.objectStore('items');
-      store.put(item);
-      return tx.complete;
+      try {
+        const db = await openDB();
+        const tx = db.transaction('items', 'readwrite');
+        const store = tx.objectStore('items');
+        store.put(item);
+        await new Promise((resolve, reject) => {
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+        console.log('アイテムを保存しました:', item);
+      } catch (error) {
+        console.error('保存に失敗しました:', error);
+      }
     }
 
     // 削除
     async function deleteItem(id) {
-      const db = await openDB();
-      const tx = db.transaction('items', 'readwrite');
-      const store = tx.objectStore('items');
-      store.delete(id);
-      return tx.complete;
+      try {
+        const db = await openDB();
+        const tx = db.transaction('items', 'readwrite');
+        const store = tx.objectStore('items');
+        store.delete(id);
+        await new Promise((resolve, reject) => {
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+        console.log('アイテムを削除しました:', id);
+      } catch (error) {
+        console.error('削除に失敗しました:', error);
+      }
     }
 
     // 取得
     async function loadItems() {
-      const db = await openDB();
-      const tx = db.transaction('items', 'readonly');
-      const store = tx.objectStore('items');
-      return new Promise((resolve, reject) => {
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
+      try {
+        const db = await openDB();
+        const tx = db.transaction('items', 'readonly');
+        const store = tx.objectStore('items');
+        return new Promise((resolve, reject) => {
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      } catch (error) {
+        console.error('読み込みに失敗しました:', error);
+        return [];
+      }
     }
 
     // 初期ダミー
@@ -77,13 +98,12 @@
     // タイムラインのオプション
     const options = {
       editable: {
-        add: true,       // バー追加
-        remove: true,    // バー削除
-        updateTime: true, // バー全体移動
+        add: true,
+        remove: true,
+        updateTime: true,
         updateGroup: false,
         overrideItems: false
       },
-      editable: true, // 全体的に編集可
       margin: { item: 10 },
       start: `${baseDate}T00:00:00`,
       end: `${baseDate}T24:00:00`,
@@ -92,69 +112,84 @@
       orientation: 'top',
       stack: false,
       snap: function (date, scale, step) {
-        const hour = 60 * 60 * 1000; // 1時間（ミリ秒）
         return Math.round(date / (15 * 60 * 1000)) * (15 * 60 * 1000); 
-        // ← 15分単位でスナップ
       },
+      onAdd: function (item, callback) {
+        const label = prompt('アイテム名を入力してください', '新しいアイテム');
+        if (label) {
+          item.content = label;
+          item.id = Date.now();
+          item.editable = { updateTime: true, updateGroup: false };
+          callback(item);
+          saveItem(item);
+        } else {
+          callback(null);
+        }
+      },
+      onUpdate: function (item, callback) {
+        callback(item);
+        saveItem(item);
+      },
+      onRemove: function (item, callback) {
+        callback(item);
+        deleteItem(item.id);
+      }
     };
 
-    const items = new vis.DataSet([]); // ここで先に定義
+    const items = new vis.DataSet([]);
 
     // タイムライン作成
     const container = document.getElementById('timeline');
     const timeline = new vis.Timeline(container, items, options);
 
-    // ページロード時に保存データをロード
-    loadItems().then(savedItems => {
-      console.log('IndexedDBから読み込んだデータ:', savedItems);
-      if (savedItems.length) {
-        items.add(savedItems);
-      } else {
+    // 初期化関数
+    async function initializeApp() {
+      try {
+        const savedItems = await loadItems();
+        console.log('IndexedDBから読み込んだデータ:', savedItems);
+        
+        if (savedItems && savedItems.length > 0) {
+          // 保存されたデータがある場合は読み込み
+          items.add(savedItems);
+          console.log('保存されたデータを読み込みました');
+        } else {
+          // 保存されたデータがない場合はデフォルトデータを使用
+          items.add(defaultItems);
+          // デフォルトデータも保存する
+          for (const item of defaultItems) {
+            await saveItem(item);
+          }
+          console.log('デフォルトデータを設定しました');
+        }
+      } catch (error) {
+        console.error('初期化に失敗しました:', error);
+        // エラーの場合はデフォルトデータを使用
         items.add(defaultItems);
+      }
+    }
+
+    // アプリケーション初期化
+    initializeApp();
+
+    // アイテムダブルクリック時のリネーム機能
+    timeline.on('doubleClick', function (props) {
+      if (props.item) {
+        const item = items.get(props.item);
+        const newName = prompt('アイテム名を変更してください', item.content);
+        if (newName && newName.trim() !== '') {
+          items.update({ id: props.item, content: newName.trim() });
+          saveItem(items.get(props.item));
+        }
       }
     });
 
-    // 変更イベント
-    timeline.on('change', function(props) {
-      props.items.forEach(async id => {
-        const item = items.get(id);
-        await saveItem(item);
-      });
-    });
+    // デバッグ用：現在のアイテム一覧を表示
+    function showCurrentItems() {
+      console.log('現在のアイテム一覧:', items.get());
+    }
 
-    // 削除イベント
-    timeline.on('remove', function(props) {
-      props.items.forEach(async id => {
-        await deleteItem(id);
-      });
-    });
-
-    // 追加イベントをカスタマイズ
-    timeline.on('add', function(props) {
-      timeline.cancelAdd(); // デフォルトの追加をキャンセル
-      const label = prompt('アイテム名を入力してください', '新しいアイテム');
-      if (!label) return;
-
-      const startTime = new Date(props.item.start);
-      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // デフォルト1時間
-
-      const newItem = {
-        id: Date.now(),
-        content: label,
-        start: startTime.toISOString(),
-        end: endTime.toISOString(),
-        editable: { updateTime: true, updateGroup: false }
-      };
-
-      items.add(newItem);
-      saveItem(newItem);
-    });
-    
-    // 変更イベント
-    timeline.on('change', function (props) {
-      console.log('変更されたID:', props.items);
-      console.log('新しいデータ:', items.get(props.items));
-    });
+    // グローバルに公開（デバッグ用）
+    window.showCurrentItems = showCurrentItems;
   </script>
 </body>
 </html>
