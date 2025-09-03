@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>1日の時間割タイムライン</title>
-  <script src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
-  <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" />
   <style>
     body { font-family: sans-serif; padding: 10px; }
     #timeline { border: 1px solid #ccc; }
@@ -90,9 +90,9 @@
 
     // 初期ダミー
     const defaultItems = [
-      { id: 1, content: '朝のルーチン', start: `${baseDate}T06:00:00`, end: `${baseDate}T07:00:00`, editable: { updateTime: true } },
-      { id: 2, content: '執筆',         start: `${baseDate}T09:00:00`, end: `${baseDate}T11:00:00`, editable: { updateTime: true } },
-      { id: 3, content: '昼休憩',       start: `${baseDate}T12:00:00`, end: `${baseDate}T13:00:00`, editable: { updateTime: true } }
+      { id: 1, content: '朝のルーチン', start: `${baseDate}T06:00:00`, end: `${baseDate}T07:00:00`, editable: { updateTime: true, remove: true } },
+      { id: 2, content: '執筆',         start: `${baseDate}T09:00:00`, end: `${baseDate}T11:00:00`, editable: { updateTime: true, remove: true } },
+      { id: 3, content: '昼休憩',       start: `${baseDate}T12:00:00`, end: `${baseDate}T13:00:00`, editable: { updateTime: true, remove: true } }
     ];
 
     // タイムラインのオプション
@@ -169,17 +169,22 @@
     }
 
     // アプリケーション初期化
-    initializeApp();
+    window.addEventListener('load', function() {
+      console.log('ページ読み込み完了');
+      console.log('vis:', typeof vis);
+      initializeApp();
+    });
 
     // アイテムダブルクリック時のリネーム機能
     timeline.on('doubleClick', function (props) {
       if (props.item) {
         const item = items.get(props.item);
-        const newName = prompt('アイテム名を変更してください', item.content);
-        if (newName && newName.trim() !== '') {
-          items.update({ id: props.item, content: newName.trim() });
-          saveItem(items.get(props.item));
-        }
+        showModal('アイテム名を変更してください', item.content, function(newName) {
+          if (newName && newName.trim() !== '') {
+            items.update({ id: props.item, content: newName.trim() });
+            saveItem(items.get(props.item));
+          }
+        });
       }
     });
 
