@@ -26,6 +26,18 @@
   <h2>1日の時間割（ドラッグで変更可能）</h2>
   <div id="timeline"></div>
 
+  <!-- モーダルダイアログ -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">アイテム名を入力してください</h3>
+      <input type="text" id="itemNameInput" placeholder="アイテム名">
+      <div class="modal-buttons">
+        <button onclick="cancelModal()">キャンセル</button>
+        <button onclick="confirmModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // モーダルダイアログの制御
     let currentModalCallback = null;
