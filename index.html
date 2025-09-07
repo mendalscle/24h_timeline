@@ -27,6 +27,46 @@
   <div id="timeline"></div>
 
   <script>
+    // モーダルダイアログの制御
+    let currentModalCallback = null;
+    
+    function showModal(title, defaultValue, callback) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('itemNameInput').value = defaultValue || '';
+      document.getElementById('modal').style.display = 'block';
+      document.getElementById('itemNameInput').focus();
+      currentModalCallback = callback;
+    }
+    
+    function hideModal() {
+      document.getElementById('modal').style.display = 'none';
+      currentModalCallback = null;
+    }
+    
+    function confirmModal() {
+      const value = document.getElementById('itemNameInput').value.trim();
+      if (currentModalCallback) {
+        currentModalCallback(value || null);
+      }
+      hideModal();
+    }
+    
+    function cancelModal() {
+      if (currentModalCallback) {
+        currentModalCallback(null);
+      }
+      hideModal();
+    }
+    
+    // Enterキーでも確定できるように
+    document.getElementById('itemNameInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        confirmModal();
+      } else if (e.key === 'Escape') {
+        cancelModal();
+      }
+    });
+
     // 固定のダミー日付（どの日でもOK。時間だけ使う）
     const baseDate = "1970-01-01";
 
