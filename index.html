@@ -123,16 +123,27 @@
         return Math.round(date / (15 * 60 * 1000)) * (15 * 60 * 1000); 
       },
       onAdd: function (item, callback) {
-        const label = prompt('アイテム名を入力してください', '新しいアイテム');
-        if (label) {
-          item.content = label;
-          item.id = Date.now();
-          item.editable = { updateTime: true, updateGroup: false };
-          callback(item);
-          saveItem(item);
-        } else {
-          callback(null);
-        }
+        showModal('アイテム名を入力してください', '新しいアイテム', function(label) {
+          if (label) {
+            // 開始時間を15分単位に調整
+            const startTime = new Date(item.start);
+            const snapStart = Math.round(startTime.getTime() / (15 * 60 * 1000)) * (15 * 60 * 1000);
+            const snappedStartTime = new Date(snapStart);
+            
+            // 開始時間から1時間後を終了時間に設定
+            const endTime = new Date(snappedStartTime.getTime() + 60 * 60 * 1000);
+            
+            item.content = label;
+            item.id = Date.now();
+            item.start = snappedStartTime.toISOString();
+            item.end = endTime.toISOString();
+            item.editable = { updateTime: true, updateGroup: false, remove: true };
+            callback(item);
+            saveItem(item);
+          } else {
+            callback(null);
+          }
+        });
       },
       onUpdate: function (item, callback) {
         callback(item);
