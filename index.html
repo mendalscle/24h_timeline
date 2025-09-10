@@ -39,6 +39,40 @@
   </div>
 
   <script>
+    // 削除ボタンを追加する関数
+    function addDeleteButton(itemElement, itemId) {
+      // すでに削除ボタンがある場合は追加しない
+      if (itemElement.querySelector('.delete-btn')) return;
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.innerHTML = '×';
+      deleteBtn.onclick = function(e) {
+        e.stopPropagation();
+        const item = items.get(itemId);
+        if (item && confirm(`「${item.content}」を削除しますか？`)) {
+          items.remove(itemId);
+          deleteItem(itemId);
+          selectedItemId = null;
+          updateSelectedInfo();
+        }
+      };
+      itemElement.appendChild(deleteBtn);
+    }
+
+    // すべてのアイテムに削除ボタンを追加
+    function addDeleteButtonsToAllItems() {
+      setTimeout(() => {
+        const itemElements = document.querySelectorAll('.vis-item');
+        itemElements.forEach(element => {
+          const itemId = element.getAttribute('data-item');
+          if (itemId) {
+            addDeleteButton(element, parseInt(itemId));
+          }
+        });
+      }, 100);
+    }
+
     // モーダルダイアログの制御
     let currentModalCallback = null;
     
@@ -192,6 +226,7 @@
             item.editable = { updateTime: true, updateGroup: false, remove: true };
             callback(item);
             saveItem(item);
+            addDeleteButtonsToAllItems();
           } else {
             callback(null);
           }
@@ -223,6 +258,8 @@
           // 保存されたデータがある場合は読み込み
           items.add(savedItems);
           console.log('保存されたデータを読み込みました');
+          // 読み込み後に削除ボタンを追加
+          addDeleteButtonsToAllItems();
         } else {
           // 保存されたデータがない場合はデフォルトデータを使用
           items.add(defaultItems);
@@ -231,11 +268,14 @@
             await saveItem(item);
           }
           console.log('デフォルトデータを設定しました');
+          // デフォルトアイテムにも削除ボタンを追加
+          addDeleteButtonsToAllItems();
         }
       } catch (error) {
         console.error('初期化に失敗しました:', error);
         // エラーの場合はデフォルトデータを使用
         items.add(defaultItems);
+        addDeleteButtonsToAllItems();
       }
     }
 
@@ -246,6 +286,11 @@
       initializeApp();
     });
 
+    // タイムラインの再描画時にも削除ボタンを追加
+    timeline.on('changed', function() {
+      addDeleteButtonsToAllItems();
+    });
+    
     // アイテムダブルクリック時のリネーム機能
     timeline.on('doubleClick', function (props) {
       if (props.item) {
