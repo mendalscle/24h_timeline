@@ -400,7 +400,14 @@
           }
           console.log('デフォルトデータを設定しました');
           // デフォルトアイテムにも削除ボタンを追加
+          console.log('デフォルトデータを設定後、削除ボタンを追加します');
           addDeleteButtonsToAllItems();
+          
+          // 追加で少し遅延してもう一度実行
+          setTimeout(() => {
+            console.log('2回目の削除ボタン追加を実行します');
+            addDeleteButtonsToAllItems();
+          }, 1000);
         }
       } catch (error) {
         console.error('初期化に失敗しました:', error);
