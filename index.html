@@ -385,6 +385,15 @@
       snap: function (date, scale, step) {
         return Math.round(date / (15 * 60 * 1000)) * (15 * 60 * 1000); 
       },
+      // 時間フォーマット設定
+      format: {
+        minorLabels: {
+          hour: 'H時'
+        },
+        majorLabels: {
+          hour: 'H時'
+        }
+      },
       onUpdate: function (item, callback) {
         callback(item);
         saveItem(item);
