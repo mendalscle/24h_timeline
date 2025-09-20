@@ -404,6 +404,37 @@
       }
     };
 
+    // 現在時刻を表す縦線を追加する関数
+    function addCurrentTimeLine() {
+      const now = new Date();
+      const currentTime = new Date(`${baseDate}T${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`);
+      
+      // カスタムタイムラインに現在時刻を設定
+      timeline.addCustomTime(currentTime, 'currentTime');
+      timeline.setCustomTimeTitle('現在時刻', 'currentTime');
+    }
+
+    // 現在時刻ラインのスタイルを設定
+    function styleCurrentTimeLine() {
+      setTimeout(() => {
+        const currentTimeLine = document.querySelector('.vis-custom-time.currentTime');
+        if (currentTimeLine) {
+          currentTimeLine.style.backgroundColor = '#ff0000';
+          currentTimeLine.style.width = '2px';
+          currentTimeLine.style.zIndex = '10';
+        }
+        
+        // 現在時刻のテキストも赤色にする
+        const currentTimeText = document.querySelector('.vis-custom-time.currentTime .vis-custom-time-text');
+        if (currentTimeText) {
+          currentTimeText.style.color = '#ff0000';
+          currentTimeText.style.fontWeight = 'bold';
+        }
+      }, 100);
+    }
+
+
+
     const items = new vis.DataSet([]);
 
     // タイムライン作成
@@ -434,6 +465,8 @@
         // エラーの場合はデフォルトデータを使用
         items.add(defaultItems);
       }
+      addCurrentTimeLine();
+      styleCurrentTimeLine();
     }
 
     // アプリケーション初期化
@@ -441,6 +474,13 @@
       console.log('ページ読み込み完了');
       console.log('vis:', typeof vis);
       initializeApp();
+
+      // 1分ごとに現在時刻ラインを更新
+      setInterval(() => {
+        const now = new Date();
+        const currentTime = new Date(`${baseDate}T${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`);
+        timeline.setCustomTime(currentTime, 'currentTime');
+      }, 60000); // 60秒ごと
     });
 
     // アイテムダブルクリック時のリネーム機能（既存アイテム）
