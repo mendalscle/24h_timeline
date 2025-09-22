@@ -251,6 +251,10 @@
     // Enterキーで追加、Escapeキーでキャンセル
     document.getElementById('newItemInput').addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !this.disabled) {
+        // IMEによる変換中の場合は処理しない
+        if (e.isComposing || e.keyCode === 229) {
+          return;
+        }
         createNewItem();
       } else if (e.key === 'Escape' && !this.disabled) {
         cancelNewItem();
