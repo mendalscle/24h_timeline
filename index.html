@@ -12,6 +12,13 @@
     .vis-time-axis .vis-text.vis-major {
       display: none !important;
     }
+
+    /* タイムラインコンテナの幅制限を解除 */
+    #timeline {
+      border: 1px solid #ccc;
+      width: 100% !important;
+      overflow-x: auto !important;
+    }
     
     /* タイムライン全体の最小幅を設定 */
     .vis-timeline {
@@ -27,7 +34,7 @@
     .vis-time-axis .vis-text.vis-minor {
       min-width: 60px !important;
     }
-    
+
     /* アイテム上の線と丸を非表示にする */
     .vis-item .vis-item-overflow {
       overflow: hidden;
