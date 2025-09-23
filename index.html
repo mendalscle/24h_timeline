@@ -393,6 +393,19 @@
       max: `${baseDate}T24:00:00`,
       orientation: 'top',
       stack: false,
+
+      // 時間軸の設定を追加
+      timeAxis: {
+        scale: 'hour',
+        step: 1
+      },
+      
+      // 最小幅を設定（1時間 = 60px程度）
+      width: '1440px',  // 24時間 × 60px = 1440px
+      
+      // 横スクロールを有効化
+      horizontalScroll: true,
+
       snap: function (date, scale, step) {
         return Math.round(date / (15 * 60 * 1000)) * (15 * 60 * 1000); 
       },
