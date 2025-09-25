@@ -442,6 +442,34 @@
       }
     };
 
+
+    // 画面サイズに応じて表示範囲を動的調整
+    function adjustTimelineRange() {
+      const container = document.getElementById('timeline');
+      const containerWidth = container.offsetWidth;
+      
+      // 1時間あたり60pxとして計算
+      const minPixelsPerHour = 60;
+      const maxDisplayableHours = Math.floor(containerWidth / minPixelsPerHour);
+      
+      if (maxDisplayableHours < 12) {
+        // 表示可能時間数が12時間未満の場合、表示範囲を縮小
+        const startHour = 6;
+        const endHour = Math.min(startHour + maxDisplayableHours, 24);
+        
+        timeline.setWindow(
+          `${baseDate}T${startHour.toString().padStart(2, '0')}:00:00`,
+          `${baseDate}T${endHour.toString().padStart(2, '0')}:00:00`
+        );
+      }
+    }
+
+    // ウィンドウサイズ変更時に調整
+    window.addEventListener('resize', adjustTimelineRange);
+
+    // 初期化後に調整
+    setTimeout(adjustTimelineRange, 200);
+
     // 現在時刻を表す縦線を追加する関数
     function addCurrentTimeLine() {
       const now = new Date();
