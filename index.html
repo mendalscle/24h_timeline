@@ -300,17 +300,6 @@
       }
     });
 
-    // アイテムダブルクリック時の処理を変更
-    timeline.on('doubleClick', function (props) {
-      if (props.item) {
-        // 既存アイテムの編集開始
-        startItemEditing(props.item);
-      } else if (props.time) {
-        // 空いている場所での新規アイテム作成開始
-        startNewItemCreation(props.time);
-      }
-    });
-
     // 固定のダミー日付（どの日でもOK。時間だけ使う）
     const baseDate = "1970-01-01";
 
@@ -541,6 +530,17 @@
         const currentTime = new Date(`${baseDate}T${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`);
         timeline.setCustomTime(currentTime, 'currentTime');
       }, 60000); // 60秒ごと
+    });
+
+    // アイテムダブルクリック時の処理を変更
+    timeline.on('doubleClick', function (props) {
+      if (props.item) {
+        // 既存アイテムの編集開始
+        startItemEditing(props.item);
+      } else if (props.time) {
+        // 空いている場所での新規アイテム作成開始
+        startNewItemCreation(props.time);
+      }
     });
 
     // デバッグ用：現在のアイテム一覧を表示
