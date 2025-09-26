@@ -114,6 +114,104 @@
       z-index: 1 !important;
     }
 
+    /* モバイル対応（iPhone SE3: 375px基準） */
+    @media (max-width: 480px) {
+      body {
+        padding: 5px;
+        font-size: 14px;
+      }
+      
+      h2 {
+        font-size: 18px;
+        margin: 10px 0;
+        text-align: center;
+      }
+      
+      /* タイムライン領域 */
+      #timeline {
+        height: 200px; /* PCの半分程度 */
+        border: 1px solid #ccc;
+        margin-bottom: 15px;
+      }
+      
+      /* アイテム追加フォーム */
+      .add-item-box {
+        padding: 12px;
+        margin-top: 10px;
+      }
+      
+      .add-item-box h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+      }
+      
+      /* フォームを縦並びに変更 */
+      .input-row {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+      }
+      
+      .input-row input {
+        min-width: unset;
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        box-sizing: border-box;
+      }
+      
+      .input-row button {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        min-height: 44px;
+      }
+      
+      /* タイムラインの時間表示を小さく */
+      .vis-time-axis .vis-text {
+        font-size: 12px;
+      }
+      
+      /* アイテムのフォントサイズ調整 */
+      .vis-item .vis-item-content {
+        font-size: 12px;
+        padding: 4px 6px;
+        line-height: 1.2;
+      }
+      
+      /* 削除ボタンのサイズ調整 */
+      .vis-item .vis-delete {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 10px !important;
+        right: -10px !important;
+        top: -6px !important;
+      }
+      
+      /* 現在時刻線を細く */
+      .vis-custom-time.currentTime {
+        width: 1px !important;
+      }
+    }
+
+    /* 極小画面対応（320px以下） */
+    @media (max-width: 320px) {
+      #timeline {
+        height: 150px;
+      }
+      
+      .add-item-box {
+        padding: 8px;
+      }
+      
+      .input-row input,
+      .input-row button {
+        padding: 10px;
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 <body>
