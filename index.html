@@ -16,7 +16,6 @@
     /* タイムラインコンテナの幅制限を解除 */
     #timeline {
       border: 1px solid #ccc;
-      /* width: 100% !important; */
     }
 
     /* 1時間あたりの最小幅を60pxに固定 */
@@ -59,7 +58,6 @@
     .vis-item .vis-delete {
       right: -28px;
     }
-
 
     /* テキストボックス追加フォーム */
     .add-item-box {
@@ -117,68 +115,75 @@
     /* モバイル対応（iPhone SE3: 375px基準） */
     @media (max-width: 480px) {
       body {
-        padding: 5px;
-        font-size: 14px;
+        padding: 5px !important;
+        font-size: 14px !important;
       }
       
       h2 {
-        font-size: 18px;
-        margin: 10px 0;
-        text-align: center;
+        font-size: 18px !important;
+        margin: 10px 0 !important;
+        text-align: center !important;
       }
       
       /* タイムライン領域 */
       #timeline {
-        height: 200px; /* PCの半分程度 */
-        border: 1px solid #ccc;
-        margin-bottom: 15px;
+        height: 200px !important;
+        border: 1px solid #ccc !important;
+        margin-bottom: 15px !important;
       }
       
       /* アイテム追加フォーム */
       .add-item-box {
-        padding: 12px;
-        margin-top: 10px;
+        padding: 12px !important;
+        margin-top: 10px !important;
       }
       
       .add-item-box h3 {
-        font-size: 16px;
-        margin-bottom: 8px;
+        font-size: 16px !important;
+        margin-bottom: 8px !important;
       }
       
       /* フォームを縦並びに変更 */
       .input-row {
-        flex-direction: column;
-        gap: 8px;
-        align-items: stretch;
+        flex-direction: column !important;
+        gap: 8px !important;
+        align-items: stretch !important;
       }
       
       .input-row input {
-        min-width: unset;
-        width: 100%;
-        padding: 12px;
-        font-size: 16px;
-        border-radius: 6px;
-        box-sizing: border-box;
+        min-width: unset !important;
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 16px !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important;
       }
       
       .input-row button {
-        width: 100%;
-        padding: 12px;
-        font-size: 16px;
-        border-radius: 6px;
-        min-height: 44px;
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 16px !important;
+        border-radius: 6px !important;
+        min-height: 44px !important;
       }
       
       /* タイムラインの時間表示を小さく */
       .vis-time-axis .vis-text {
-        font-size: 12px;
+        font-size: 12px !important;
       }
       
-      /* アイテムのフォントサイズ調整 */
+      /* アイテムのフォントサイズ調整（高い優先度） */
       .vis-item .vis-item-content {
-        font-size: 12px;
-        padding: 4px 6px;
-        line-height: 1.2;
+        font-size: 12px !important;
+        padding: 4px 6px !important;
+        line-height: 1.2 !important;
+        height: 28px !important;
+      }
+      
+      /* アイテムのサイズもモバイル用に調整 */
+      .vis-item {
+        height: 28px !important;
+        min-height: 28px !important;
       }
       
       /* 削除ボタンのサイズ調整 */
@@ -186,7 +191,7 @@
         width: 18px !important;
         height: 18px !important;
         font-size: 10px !important;
-        right: -10px !important;
+        right: -12px !important;
         top: -6px !important;
       }
       
@@ -194,22 +199,40 @@
       .vis-custom-time.currentTime {
         width: 1px !important;
       }
+      
+      /* 1時間の最小幅をモバイル用に調整 */
+      .vis-time-axis .vis-grid.vis-minor {
+        min-width: 45px !important;
+      }
+      
+      .vis-time-axis .vis-text.vis-minor {
+        min-width: 45px !important;
+      }
     }
 
     /* 極小画面対応（320px以下） */
     @media (max-width: 320px) {
       #timeline {
-        height: 150px;
+        height: 150px !important;
       }
       
       .add-item-box {
-        padding: 8px;
+        padding: 8px !important;
       }
       
       .input-row input,
       .input-row button {
-        padding: 10px;
-        font-size: 14px;
+        padding: 10px !important;
+        font-size: 14px !important;
+      }
+      
+      /* さらに小さい画面では目盛り幅を狭く */
+      .vis-time-axis .vis-grid.vis-minor {
+        min-width: 35px !important;
+      }
+      
+      .vis-time-axis .vis-text.vis-minor {
+        min-width: 35px !important;
       }
     }
   </style>
