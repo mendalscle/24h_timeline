@@ -124,7 +124,15 @@
   <div class="add-item-box">
     <h3>新しいアイテムを追加</h3>
     <div class="input-row">
-      <input type="text" id="newItemInput" placeholder="アイテム名を入力してください（タイムライン上をダブルクリックしてください）" disabled>
+      <input 
+        type="text" 
+        id="newItemInput" 
+        placeholder="アイテム名を入力してください（タイムライン上をダブルクリックしてください）" 
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        disabled>
       <button id="addItemBtn" onclick="createNewItem()" disabled>追加</button>
       <button id="cancelBtn" onclick="cancelNewItem()" class="cancel" disabled>キャンセル</button>
     </div>
@@ -150,6 +158,14 @@
         end: endTime.toISOString()
       };
       
+      // モバイルでのフォーカス処理を改善
+      setTimeout(() => {
+        input.focus();
+        if (input.setSelectionRange) {
+          input.setSelectionRange(0, 0);
+        }
+      }, 300); // 遅延を追加
+
       // テキストボックスを有効化してフォーカス
       const input = document.getElementById('newItemInput');
       const addBtn = document.getElementById('addItemBtn');
@@ -231,6 +247,12 @@
       pendingItem = null;
       
       console.log('アイテム編集開始:', item);
+
+      // モバイルでのフォーカス処理を改善
+      setTimeout(() => {
+        input.focus();
+        input.select();
+      }, 300);
     }
 
     // createNewItem関数を修正して編集にも対応
