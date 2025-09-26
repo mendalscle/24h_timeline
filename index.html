@@ -106,42 +106,6 @@
     .input-row button.cancel:hover:not(:disabled) {
       background: #c82333;
     }
-    
-    /* モーダルダイアログのスタイル */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content {
-      background-color: #fefefe;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 300px;
-      border-radius: 5px;
-    }
-    .modal-buttons {
-      text-align: right;
-      margin-top: 15px;
-    }
-    .modal-buttons button {
-      margin-left: 10px;
-      padding: 5px 15px;
-      cursor: pointer;
-    }
-    #itemNameInput {
-      width: 100%;
-      padding: 8px;
-      margin-top: 10px;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-    }
 
     /* 現在時刻ラインのドラッグを無効化 */
     .vis-custom-time.currentTime {
@@ -163,18 +127,6 @@
       <input type="text" id="newItemInput" placeholder="アイテム名を入力してください（タイムライン上をダブルクリックしてください）" disabled>
       <button id="addItemBtn" onclick="createNewItem()" disabled>追加</button>
       <button id="cancelBtn" onclick="cancelNewItem()" class="cancel" disabled>キャンセル</button>
-    </div>
-  </div>
-
-  <!-- モーダルダイアログ -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <h3 id="modalTitle">アイテム名を入力してください</h3>
-      <input type="text" id="itemNameInput" placeholder="アイテム名">
-      <div class="modal-buttons">
-        <button onclick="cancelModal()">キャンセル</button>
-        <button onclick="confirmModal()">OK</button>
-      </div>
     </div>
   </div>
 
@@ -249,6 +201,73 @@
       resetNewItemForm();
     }
     
+    // アイテム編集用の変数
+    let editingItemId = null;
+
+    // アイテム編集を開始する関数
+    function startItemEditing(itemId) {
+      const item = items.get(itemId);
+      if (!item) return;
+      
+      // 編集中のアイテムIDを保存
+      editingItemId = itemId;
+      
+      // テキストボックスを編集モードに変更
+      const input = document.getElementById('newItemInput');
+      const addBtn = document.getElementById('addItemBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      
+      input.disabled = false;
+      input.placeholder = "アイテム名を変更してください";
+      input.value = item.content;
+      input.focus();
+      input.select(); // 既存テキストを選択
+      
+      addBtn.textContent = "更新";
+      addBtn.disabled = false;
+      cancelBtn.disabled = false;
+      
+      // 新規作成データをクリア
+      pendingItem = null;
+      
+      console.log('アイテム編集開始:', item);
+    }
+
+    // createNewItem関数を修正して編集にも対応
+    function createNewItem() {
+      const input = document.getElementById('newItemInput');
+      const name = input.value.trim();
+      
+      if (!name) {
+        alert('アイテム名を入力してください');
+        input.focus();
+        return;
+      }
+      
+      if (editingItemId) {
+        // 編集モードの場合
+        items.update({ id: editingItemId, content: name });
+        saveItem(items.get(editingItemId));
+        console.log('アイテムを更新しました:', editingItemId);
+      } else if (pendingItem) {
+        // 新規作成モードの場合
+        const newItem = {
+          id: Date.now(),
+          content: name,
+          start: pendingItem.start,
+          end: pendingItem.end,
+          editable: true
+        };
+        
+        items.add(newItem);
+        saveItem(newItem);
+        console.log('新しいアイテムを作成しました:', newItem);
+      }
+      
+      // リセット
+      resetNewItemForm();
+    }
+
     function resetNewItemForm() {
       const input = document.getElementById('newItemInput');
       const addBtn = document.getElementById('addItemBtn');
@@ -258,12 +277,16 @@
       input.placeholder = "アイテム名を入力してください（タイムライン上をダブルクリックしてください）";
       input.value = "";
       
+      addBtn.textContent = "追加"; // ボタンテキストを元に戻す
       addBtn.disabled = true;
       cancelBtn.disabled = true;
       
       pendingItem = null;
+      editingItemId = null; // 編集IDもクリア
     }
     
+    
+
     // Enterキーで追加、Escapeキーでキャンセル
     document.getElementById('newItemInput').addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !this.disabled) {
@@ -277,43 +300,14 @@
       }
     });
 
-    // モーダルダイアログの制御
-    let currentModalCallback = null;
-    
-    function showModal(title, defaultValue, callback) {
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('itemNameInput').value = defaultValue || '';
-      document.getElementById('modal').style.display = 'block';
-      document.getElementById('itemNameInput').focus();
-      currentModalCallback = callback;
-    }
-    
-    function hideModal() {
-      document.getElementById('modal').style.display = 'none';
-      currentModalCallback = null;
-    }
-    
-    function confirmModal() {
-      const value = document.getElementById('itemNameInput').value.trim();
-      if (currentModalCallback) {
-        currentModalCallback(value || null);
-      }
-      hideModal();
-    }
-    
-    function cancelModal() {
-      if (currentModalCallback) {
-        currentModalCallback(null);
-      }
-      hideModal();
-    }
-    
-    // Enterキーでも確定できるように
-    document.getElementById('itemNameInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        confirmModal();
-      } else if (e.key === 'Escape') {
-        cancelModal();
+    // アイテムダブルクリック時の処理を変更
+    timeline.on('doubleClick', function (props) {
+      if (props.item) {
+        // 既存アイテムの編集開始
+        startItemEditing(props.item);
+      } else if (props.time) {
+        // 空いている場所での新規アイテム作成開始
+        startNewItemCreation(props.time);
       }
     });
 
@@ -547,23 +541,6 @@
         const currentTime = new Date(`${baseDate}T${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`);
         timeline.setCustomTime(currentTime, 'currentTime');
       }, 60000); // 60秒ごと
-    });
-
-    // アイテムダブルクリック時のリネーム機能（既存アイテム）
-    timeline.on('doubleClick', function (props) {
-      if (props.item) {
-        // 既存アイテムのリネーム
-        const item = items.get(props.item);
-        showModal('アイテム名を変更してください', item.content, function(newName) {
-          if (newName && newName.trim() !== '') {
-            items.update({ id: props.item, content: newName.trim() });
-            saveItem(items.get(props.item));
-          }
-        });
-      } else if (props.time) {
-        // 空いている場所での新規アイテム作成開始
-        startNewItemCreation(props.time);
-      }
     });
 
     // デバッグ用：現在のアイテム一覧を表示
