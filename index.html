@@ -554,8 +554,32 @@
       }, 60000); // 60秒ごと
     });
 
-    // アイテムダブルクリック時の処理を変更
-    timeline.on('doubleClick', function (props) {
+    // タッチデバイス用のダブルタップ処理を追加
+    let lastTouchTime = 0;
+    let touchCount = 0;
+
+    timeline.on('click', function(props) {
+      // タッチデバイスでのダブルタップ処理
+      if ('ontouchstart' in window) {
+        const currentTime = Date.now();
+        touchCount++;
+        
+        if (touchCount === 1) {
+          lastTouchTime = currentTime;
+          // 300ms後にタッチカウントをリセット
+          setTimeout(() => {
+            touchCount = 0;
+          }, 300);
+        } else if (touchCount === 2 && (currentTime - lastTouchTime) < 300) {
+          // ダブルタップを検出
+          touchCount = 0;
+          handleDoubleClick(props);
+        }
+      }
+    });
+
+    // ダブルクリック処理を共通化
+    function handleDoubleClick(props) {
       if (props.item) {
         // 既存アイテムの編集開始
         startItemEditing(props.item);
@@ -563,6 +587,11 @@
         // 空いている場所での新規アイテム作成開始
         startNewItemCreation(props.time);
       }
+    }
+
+    // 既存のdoubleClickイベントも共通関数を使用
+    timeline.on('doubleClick', function (props) {
+      handleDoubleClick(props);
     });
 
     // デバッグ用：現在のアイテム一覧を表示
