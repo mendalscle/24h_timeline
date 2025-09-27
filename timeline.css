@@ -1,0 +1,290 @@
+/* ベーススタイル */
+body { 
+    font-family: sans-serif; 
+    padding: 10px; 
+    margin: 0;
+}
+
+#timeline { 
+    border: 1px solid #ccc; 
+}
+
+/* 日付ラベル（曜日・月など）を非表示にする */
+.vis-time-axis .vis-text.vis-major {
+    display: none !important;
+}
+
+/* 1時間あたりの最小幅を60pxに固定 */
+.vis-time-axis .vis-grid.vis-minor {
+    min-width: 60px !important;
+}
+
+.vis-time-axis .vis-text.vis-minor {
+    min-width: 60px !important;
+}
+
+/* アイテム上の線と丸を非表示にする */
+.vis-item .vis-item-overflow {
+    overflow: hidden;
+}
+
+.vis-item .vis-item-content {
+    position: relative;
+}
+
+.vis-item .vis-onUpdateTime-tooltip,
+.vis-item .vis-drag-center {
+    display: none !important;
+}
+
+.vis-item.vis-range .vis-item-content::before,
+.vis-item.vis-range .vis-item-content::after {
+    display: none !important;
+}
+
+/* アイテム縦幅を統一 */
+.vis-item {
+    height: 30px !important;
+    min-height: 30px !important;
+}
+
+.vis-item .vis-item-content {
+    height: 30px !important;
+    line-height: 30px !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+}
+
+/* 削除ボタンの位置調整 */
+.vis-item .vis-delete {
+    right: -28px;
+}
+
+/* テキストボックス追加フォーム */
+.add-item-box {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.add-item-box h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+.input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.input-row input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    min-width: 200px;
+    font-size: 14px;
+}
+
+.input-row input:focus {
+    outline: none;
+    border-color: #007cba;
+    box-shadow: 0 0 5px rgba(0, 124, 186, 0.3);
+}
+
+.input-row button {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.input-row button:hover:not(:disabled) {
+    background: #218838;
+}
+
+.input-row button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.input-row button.cancel {
+    background: #dc3545;
+}
+
+.input-row button.cancel:hover:not(:disabled) {
+    background: #c82333;
+}
+
+/* 現在時刻ラインのドラッグを無効化 */
+.vis-custom-time.currentTime {
+    pointer-events: none !important;
+    cursor: default !important;
+    z-index: 1 !important;
+}
+
+/* タブレット対応 */
+@media (max-width: 768px) {
+    body {
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    .add-item-box {
+        padding: 12px;
+    }
+    
+    .input-row input {
+        min-width: 150px;
+        font-size: 15px;
+        padding: 10px;
+    }
+    
+    .input-row button {
+        padding: 10px 12px;
+        font-size: 15px;
+        min-height: 40px;
+    }
+}
+
+/* モバイル対応（iPhone SE3: 375px基準） */
+@media (max-width: 480px) {
+    body {
+        padding: 5px !important;
+        font-size: 14px !important;
+    }
+    
+    h2 {
+        font-size: 18px !important;
+        margin: 10px 0 !important;
+        text-align: center !important;
+    }
+    
+    /* タイムライン領域 */
+    #timeline {
+        height: 200px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    /* アイテム追加フォーム */
+    .add-item-box {
+        padding: 12px !important;
+        margin-top: 10px !important;
+    }
+    
+    .add-item-box h3 {
+        font-size: 16px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* フォームを縦並びに変更 */
+    .input-row {
+        flex-direction: column !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+    }
+    
+    .input-row input {
+        min-width: unset !important;
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 16px !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .input-row button {
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 16px !important;
+        border-radius: 6px !important;
+        min-height: 44px !important;
+    }
+    
+    /* タイムラインの時間表示を小さく */
+    .vis-time-axis .vis-text {
+        font-size: 12px !important;
+    }
+    
+    /* アイテムのフォントサイズ調整 */
+    .vis-item .vis-item-content {
+        font-size: 12px !important;
+        padding: 4px 6px !important;
+        line-height: 1.2 !important;
+        height: 28px !important;
+    }
+    
+    /* アイテムのサイズもモバイル用に調整 */
+    .vis-item {
+        height: 28px !important;
+        min-height: 28px !important;
+    }
+    
+    /* 削除ボタンのサイズ調整 */
+    .vis-item .vis-delete {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 10px !important;
+        right: -12px !important;
+        top: -6px !important;
+    }
+    
+    /* 現在時刻線を細く */
+    .vis-custom-time.currentTime {
+        width: 1px !important;
+    }
+    
+    /* 1時間の最小幅をモバイル用に調整 */
+    .vis-time-axis .vis-grid.vis-minor {
+        min-width: 45px !important;
+    }
+    
+    .vis-time-axis .vis-text.vis-minor {
+        min-width: 45px !important;
+    }
+}
+
+/* 極小画面対応（320px以下） */
+@media (max-width: 320px) {
+    body {
+        padding: 3px !important;
+    }
+    
+    h2 {
+        font-size: 16px !important;
+        margin: 8px 0 !important;
+    }
+    
+    #timeline {
+        height: 150px !important;
+    }
+    
+    .add-item-box {
+        padding: 8px !important;
+    }
+    
+    .input-row input,
+    .input-row button {
+        padding: 10px !important;
+        font-size: 14px !important;
+    }
+    
+    .input-row button {
+        min-height: 40px !important;
+    }
+    
+    /* さらに小さい画面では目盛り幅を狭く */
+    .vis-time-axis .vis-grid.vis-minor {
+        min-width: 35px !important;
+    }
+    
+    .vis-time-axis .vis-text.vis-minor {
+        min-width: 35px !important;
+    }
+}
