@@ -194,11 +194,6 @@
         right: -12px !important;
         top: -6px !important;
       }
-      
-      /* タイムラインの縦幅を固定 */
-      .vis-itemset .vis-group{
-        height: 45px !important;
-      }
 
       /* 現在時刻線を細く */
       .vis-custom-time.currentTime {
@@ -213,6 +208,38 @@
       .vis-time-axis .vis-text.vis-minor {
         min-width: 45px !important;
       }
+
+
+      /* タイムライン全体の高さ固定 */
+      #timeline {
+          height: 150px !important;
+          min-height: 150px !important;
+          max-height: 150px !important;
+          margin-bottom: 0px !important;
+      }
+      
+      /* vis.jsの内部要素も固定 */
+      #timeline .vis-timeline {
+          height: 150px !important;
+          min-height: 150px !important;
+      }
+      
+      #timeline .vis-content {
+          height: 150px !important;
+          min-height: 150px !important;
+      }
+      
+      /* アイテム表示エリアの高さも固定 */
+      #timeline .vis-itemset {
+          height: 120px !important;
+          min-height: 120px !important;
+      }
+      
+      /* 時間軸部分の高さ */
+      #timeline .vis-time-axis {
+          height: 30px !important;
+      }
+      
     }
 
     /* 極小画面対応（320px以下） */
