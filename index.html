@@ -195,6 +195,11 @@
         top: -6px !important;
       }
       
+      /* タイムラインの縦幅を固定 */
+      .vis-itemset .vis-group{
+        height: 45px !important;
+      }
+
       /* 現在時刻線を細く */
       .vis-custom-time.currentTime {
         width: 1px !important;
@@ -234,7 +239,10 @@
       .vis-time-axis .vis-text.vis-minor {
         min-width: 35px !important;
       }
+
     }
+
+      
 
     /* デバッグ用：モバイル検出の確認 */
     @media screen and (max-width: 480px) {
