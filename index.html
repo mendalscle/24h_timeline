@@ -608,14 +608,23 @@
           hour: 'H時'
         }
       },
+      
       onUpdate: function (item, callback) {
+        console.log('onUpdate発火:', item); // デバッグ用
+        callback(item); // これを先に呼ぶ
+        saveItem(item); // その後保存
+      },
+      
+      onMove: function(item, callback) {
+        console.log('onMove発火:', item); // デバッグ用
         callback(item);
         saveItem(item);
       },
+      
       onRemove: function (item, callback) {
         callback(item);
         deleteItem(item.id);
-      }
+      },
     };
 
 
