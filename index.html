@@ -212,22 +212,31 @@
 
       /* タイムライン全体の高さ固定 */
       #timeline {
-          height: 120px !important;
-          min-height: 120px !important;
-          max-height: 120px !important;
+          /* height: 120px !important; */
+          min-height: 70px !important;
+          /* max-height: 120px !important; */
           margin-bottom: 0px !important;
       }
       
       #timeline .vis-timeline {
-          height: 120px !important;
-          min-height: 120px !important;
+          /* height: 70px !important; */
+          min-height: 70px !important;
       }
       
       #timeline .vis-content {
-          height: auto !important;
-          /* min-height: 45px !important; */
+          /* height: auto !important; */
+          min-height: 50px !important;
       }
       
+      #timeline .vis-content .vis-itemset{
+          /* height: auto !important; */
+          min-height: 50px !important;
+      }
+
+      #timeline .vis-content .vis-group{
+          /* height: auto !important; */
+          min-height: 50px !important;
+      }
     }
 
     /* 極小画面対応（320px以下） */
