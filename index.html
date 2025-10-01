@@ -19,13 +19,35 @@
       border: 1px solid #ccc;
     }
 
+    /* タイムライン全体の高さ固定 */
+    #timeline {
+        min-height: 70px !important;
+        margin-bottom: 0px !important;
+    }
+    
+    #timeline .vis-timeline {
+        min-height: 70px !important;
+    }
+    
+    #timeline .vis-content {
+        min-height: 50px !important;
+    }
+    
+    #timeline .vis-content .vis-itemset{
+        min-height: 50px !important;
+    }
+
+    #timeline .vis-content .vis-group{
+        min-height: 50px !important;
+    }
+
     /* 1時間あたりの最小幅を60pxに固定 */
     .vis-time-axis .vis-grid.vis-minor {
-      min-width: 60px !important;
+      min-width: 60px;
     }
 
     .vis-time-axis .vis-text.vis-minor {
-      min-width: 60px !important;
+      min-width: 60px;
     }
 
     /* アイテム上の線と丸を非表示にする */
@@ -191,7 +213,7 @@
         width: 18px !important;
         height: 18px !important;
         font-size: 10px !important;
-        right: -12px !important;
+        right: -24px !important;
         top: -6px !important;
       }
 
@@ -209,32 +231,25 @@
         min-width: 45px !important;
       }
 
-
       /* タイムライン全体の高さ固定 */
       #timeline {
-          /* height: 120px !important; */
           min-height: 70px !important;
-          /* max-height: 120px !important; */
           margin-bottom: 0px !important;
       }
       
       #timeline .vis-timeline {
-          /* height: 70px !important; */
           min-height: 70px !important;
       }
       
       #timeline .vis-content {
-          /* height: auto !important; */
           min-height: 50px !important;
       }
       
       #timeline .vis-content .vis-itemset{
-          /* height: auto !important; */
           min-height: 50px !important;
       }
 
       #timeline .vis-content .vis-group{
-          /* height: auto !important; */
           min-height: 50px !important;
       }
     }
@@ -264,22 +279,6 @@
         min-width: 35px !important;
       }
 
-    }
-
-      
-
-    /* デバッグ用：モバイル検出の確認 */
-    @media screen and (max-width: 480px) {
-      body::before {
-        content: "モバイル表示中";
-        position: fixed;
-        top: 0;
-        left: 0;
-        background: red;
-        color: white;
-        padding: 5px;
-        z-index: 9999;
-      }
     }
 
   </style>
@@ -586,16 +585,22 @@
 
       // ドラッグによる横スクロールを有効化
       moveable: true,
+      zoomable: true,
+      
+      zoomMin: 60 * 60 * 1000, // 1時間を最小単位とする（ミリ秒単位）
+      zoomMax: 24 * 60 * 60 * 1000, // 24時間を最大単位とする
 
       // 時間軸の設定を追加
       timeAxis: {
         scale: 'hour',
-        step: 1
+        step: 1,
       },
+
 
       snap: function (date, scale, step) {
         return Math.round(date / (15 * 60 * 1000)) * (15 * 60 * 1000); 
       },
+
       // 時間フォーマット設定
       format: {
         minorLabels: {
@@ -623,7 +628,6 @@
         deleteItem(item.id);
       },
     };
-
 
     // 画面サイズに応じて表示範囲を動的調整
     function adjustTimelineRange() {
@@ -766,10 +770,82 @@
       }
     }
 
-    // 既存のdoubleClickイベントも共通関数を使用
-    timeline.on('doubleClick', function (props) {
-      handleDoubleClick(props);
+    // タイムラインのrangechangeイベントでスケールを動的に調整
+    timeline.on('rangechange', function(properties) {
+        // 画面幅が480px以下の場合のみスケール調整を適用
+        if (window.innerWidth <= 480) {
+            const hoursDiff = (properties.end - properties.start) / (60 * 60 * 1000);
+            
+            // 表示範囲に応じてスケールを変更
+            if (hoursDiff <= 8) {
+                timeline.setOptions({
+                    timeAxis: { scale: 'hour', step: 1 }  // 1時間単位
+                });
+            } else if (hoursDiff <= 16) {
+                timeline.setOptions({
+                    timeAxis: { scale: 'hour', step: 4 }  // 4時間単位
+                });
+            } else {
+                timeline.setOptions({
+                    timeAxis: { scale: 'hour', step: 6 }  // 6時間単位
+                });
+            }
+        } else {
+            // モバイル以外では常に1時間単位
+            timeline.setOptions({
+                timeAxis: { scale: 'hour', step: 1 }
+            });
+        }
     });
+
+    function adjustTimelineRange() {
+        const container = document.getElementById('timeline');
+        const containerWidth = container.offsetWidth;
+        
+        // モバイル画面の場合
+        if (window.innerWidth <= 480) {
+            // 現在時刻を取得
+            const now = new Date();
+            const currentHour = now.getHours();
+            
+            // 表示時間幅の計算（1時間あたり60px）
+            const minPixelsPerHour = 60;
+            const maxDisplayableHours = Math.floor(containerWidth / minPixelsPerHour);
+            
+            // 現在時刻を中心にして表示範囲を設定
+            const halfHours = Math.floor(maxDisplayableHours / 2);
+            let startHour = currentHour - halfHours;
+            let endHour = currentHour + halfHours;
+            
+            // 0時〜24時の範囲に収める
+            if (startHour < 0) {
+                startHour = 0;
+                endHour = Math.min(maxDisplayableHours, 24);
+            }
+            if (endHour > 24) {
+                endHour = 24;
+                startHour = Math.max(24 - maxDisplayableHours, 0);
+            }
+            
+            // タイムラインの表示範囲を設定
+            timeline.setWindow(
+                `${baseDate}T${startHour.toString().padStart(2, '0')}:00:00`,
+                `${baseDate}T${endHour.toString().padStart(2, '0')}:00:00`
+            );
+        } else {
+            // モバイル以外は従来の動作
+            const maxDisplayableHours = Math.floor(containerWidth / 60);
+            if (maxDisplayableHours < 12) {
+                const startHour = 6;
+                const endHour = Math.min(startHour + maxDisplayableHours, 24);
+                
+                timeline.setWindow(
+                    `${baseDate}T${startHour.toString().padStart(2, '0')}:00:00`,
+                    `${baseDate}T${endHour.toString().padStart(2, '0')}:00:00`
+                );
+            }
+        }
+    }
 
     // デバッグ用：現在のアイテム一覧を表示
     function showCurrentItems() {
