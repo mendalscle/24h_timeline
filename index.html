@@ -847,6 +847,43 @@
         }
     }
 
+    let isZooming = false;
+    let zoomTimeout;
+
+    // rangechange（ズーム中）
+    timeline.on('rangechange', function() {
+        isZooming = true;
+        clearTimeout(zoomTimeout);
+        
+        // ズーム終了を検知（300ms操作なしで判定）
+        zoomTimeout = setTimeout(() => {
+            isZooming = false;
+            enforceMinWidth(); // ズーム完了後に一度だけ実行
+        }, 300);
+    });
+
+    function enforceMinWidth() {
+        // ズーム中は処理をスキップ
+        if (isZooming) return;
+        
+        const minorElements = document.querySelectorAll('.vis-time-axis .vis-grid.vis-minor, .vis-time-axis .vis-text.vis-minor');
+        const minWidth = window.innerWidth <= 480 ? 45 : 60;
+        
+        minorElements.forEach(element => {
+            const currentWidth = parseFloat(element.style.width);
+            if (currentWidth && currentWidth < minWidth) {
+                element.style.width = minWidth + 'px';
+            }
+        });
+    }
+
+    // MutationObserverの設定を変更
+    const observer = new MutationObserver(function() {
+        if (!isZooming) {
+            enforceMinWidth();
+        }
+    });
+
     // デバッグ用：現在のアイテム一覧を表示
     function showCurrentItems() {
       console.log('現在のアイテム一覧:', items.get());
