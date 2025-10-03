@@ -773,7 +773,7 @@
     // タイムラインのrangechangeイベントでスケールを動的に調整
     timeline.on('rangechange', function(properties) {
         // 画面幅が480px以下の場合のみスケール調整を適用
-        if (window.innerWidth <= 480) {
+        if (window.innerWidth <= 1000) {
             const hoursDiff = (properties.end - properties.start) / (60 * 60 * 1000);
             
             // 表示範囲に応じてスケールを変更
@@ -803,7 +803,7 @@
         const containerWidth = container.offsetWidth;
         
         // モバイル画面の場合
-        if (window.innerWidth <= 480) {
+        if (window.innerWidth <= 1000) {
             // 現在時刻を取得
             const now = new Date();
             const currentHour = now.getHours();
