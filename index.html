@@ -728,11 +728,6 @@
       console.log('vis:', typeof vis);
       initializeApp();
 
-      // PC用のダブルクリックイベント
-      timeline.on('doubleClick', function(props) {
-          handleDoubleClick(props);
-      });
-
       // 1分ごとに現在時刻ラインを更新
       setInterval(() => {
         const now = new Date();
@@ -741,30 +736,34 @@
       }, 60000); // 60秒ごと
     });
 
+    // PC用のダブルクリックイベント
+    timeline.on('doubleClick', function(props) {
+      if (window.innerWidth > 480) {
+        handleDoubleClick(props);
+      }
+    });
+
     // タッチデバイス用のダブルタップ処理を追加
     let lastTouchTime = 0;
     let touchCount = 0;
 
     timeline.on('click', function(props) {
       // タッチデバイスでのダブルタップ処理
-      if ('ontouchstart' in window) {
+      if (window.innerWidth <= 480) {
         const currentTime = Date.now();
         touchCount++;
         
         if (touchCount === 1) {
           lastTouchTime = currentTime;
-          // 300ms後にタッチカウントをリセット
           setTimeout(() => {
             touchCount = 0;
           }, 300);
         } else if (touchCount === 2 && (currentTime - lastTouchTime) < 300) {
-          // ダブルタップを検出
           touchCount = 0;
           handleDoubleClick(props);
         }
       }
     });
-
 
     // ダブルクリック処理を共通化
     function handleDoubleClick(props) {
