@@ -309,6 +309,7 @@
     // 新規アイテム作成用の変数
     let pendingItem = null;
 
+    
     // テキストボックスでの新規アイテム作成機能
     function startNewItemCreation(clickTime) {
       // 開始時間を15分単位に調整
@@ -727,6 +728,11 @@
       console.log('vis:', typeof vis);
       initializeApp();
 
+      // PC用のダブルクリックイベント
+      timeline.on('doubleClick', function(props) {
+          handleDoubleClick(props);
+      });
+
       // 1分ごとに現在時刻ラインを更新
       setInterval(() => {
         const now = new Date();
@@ -758,6 +764,7 @@
         }
       }
     });
+
 
     // ダブルクリック処理を共通化
     function handleDoubleClick(props) {
