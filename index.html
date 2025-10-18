@@ -294,7 +294,7 @@
       <input 
         type="text" 
         id="newItemInput" 
-        placeholder="アイテム名を入力してください（タイムライン上をダブルクリックしてください）" 
+        placeholder="タイムライン上をダブルタップで新規作成" 
         autocomplete="off"
         autocapitalize="off"
         autocorrect="off"
@@ -308,17 +308,68 @@
   <script>
     // 新規アイテム作成用の変数
     let pendingItem = null;
+    // ズーム状態を管理する変数
+    let isZooming = false;
+    let zoomTimeout;
+    // アイテム編集用の変数
+    let editingItemId = null;
+    // タッチデバイス用のダブルタップ処理を追加
+    let lastTouchTime = 0;
+    let touchCount = 0;
 
+    // 定数定義
+    const CONFIG = {
+        BREAKPOINTS: {
+            MOBILE: 480,
+            TABLET: 1000
+        },
+        MIN_WIDTH: {
+            MOBILE: 45,
+            DESKTOP: 60
+        },
+        DELAYS: {
+            FOCUS: 300,
+            ZOOM_DETECT: 300
+        },
+        TIMELINE: {
+            SNAP_INTERVAL: 15 * 60 * 1000, // 15分
+            DEFAULT_DURATION: 60 * 60 * 1000, // 1時間
+            UPDATE_INTERVAL: 60000 // 1分
+        }
+    };
+
+    // キャッシュ用オブジェクト
+    const DOM = {
+        timeline: null,
+        input: null,
+        addBtn: null,
+        cancelBtn: null
+    };
+
+    // XSS対策：HTMLエスケープ関数
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
     
+    // DOM要素取得
+    function cacheDOMElements() {
+        DOM.timeline = document.getElementById('timeline');
+        DOM.input = document.getElementById('newItemInput');
+        DOM.addBtn = document.getElementById('addItemBtn');
+        DOM.cancelBtn = document.getElementById('cancelBtn');
+    }
+
     // テキストボックスでの新規アイテム作成機能
     function startNewItemCreation(clickTime) {
       // 開始時間を15分単位に調整
       const startTime = new Date(clickTime);
-      const snapStart = Math.round(startTime.getTime() / (15 * 60 * 1000)) * (15 * 60 * 1000);
+      const snapStart = Math.round(startTime.getTime() / CONFIG.TIMELINE.SNAP_INTERVAL) * CONFIG.TIMELINE.SNAP_INTERVAL;
       const snappedStartTime = new Date(snapStart);
       
       // 開始時間から1時間後を終了時間に設定
-      const endTime = new Date(snappedStartTime.getTime() + 60 * 60 * 1000);
+      const endTime = new Date(snappedStartTime.getTime() + CONFIG.TIMELINE.DEFAULT_DURATION);
       
       // 保留中のアイテム情報を保存
       pendingItem = {
@@ -335,9 +386,9 @@
       }, 300); // 遅延を追加
 
       // テキストボックスを有効化してフォーカス
-      const input = document.getElementById('newItemInput');
-      const addBtn = document.getElementById('addItemBtn');
-      const cancelBtn = document.getElementById('cancelBtn');
+      const input = DOM.input;
+      const addBtn = DOM.addBtn;
+      const cancelBtn = DOM.cancelBtn;
       
       input.disabled = false;
       input.placeholder = "アイテム名を入力してください";
@@ -350,43 +401,9 @@
       console.log('新規アイテム作成開始:', pendingItem);
     }
     
-    function createNewItem() {
-      if (!pendingItem) return;
-      
-      const input = document.getElementById('newItemInput');
-      const name = input.value.trim();
-      
-      if (!name) {
-        alert('アイテム名を入力してください');
-        input.focus();
-        return;
-      }
-      
-      // 新しいアイテムを作成
-      const newItem = {
-        id: Date.now(),
-        content: name,
-        start: pendingItem.start,
-        end: pendingItem.end,
-        editable: { updateTime: true, remove: true }
-      };
-      
-      // タイムラインに追加
-      items.add(newItem);
-      saveItem(newItem);
-      
-      // リセット
-      resetNewItemForm();
-      
-      console.log('新しいアイテムを作成しました:', newItem);
-    }
-    
     function cancelNewItem() {
       resetNewItemForm();
     }
-    
-    // アイテム編集用の変数
-    let editingItemId = null;
 
     // アイテム編集を開始する関数
     function startItemEditing(itemId) {
@@ -397,10 +414,10 @@
       editingItemId = itemId;
       
       // テキストボックスを編集モードに変更
-      const input = document.getElementById('newItemInput');
-      const addBtn = document.getElementById('addItemBtn');
-      const cancelBtn = document.getElementById('cancelBtn');
-      
+      const input = DOM.input;
+      const addBtn = DOM.addBtn;
+      const cancelBtn = DOM.cancelBtn;
+            
       input.disabled = false;
       input.placeholder = "アイテム名を変更してください";
       input.value = item.content;
@@ -425,7 +442,7 @@
 
     // createNewItem関数を修正して編集にも対応
     function createNewItem() {
-      const input = document.getElementById('newItemInput');
+      const input = DOM.input;
       const name = input.value.trim();
       
       if (!name) {
@@ -434,16 +451,18 @@
         return;
       }
       
+      const safeName = escapeHtml(name); // エスケープ処理
+
       if (editingItemId) {
         // 編集モードの場合
-        items.update({ id: editingItemId, content: name });
+        items.update({ id: editingItemId, content: safeName });
         saveItem(items.get(editingItemId));
         console.log('アイテムを更新しました:', editingItemId);
       } else if (pendingItem) {
         // 新規作成モードの場合
         const newItem = {
           id: Date.now(),
-          content: name,
+          content: safeName,
           start: pendingItem.start,
           end: pendingItem.end,
           editable: true
@@ -459,12 +478,12 @@
     }
 
     function resetNewItemForm() {
-      const input = document.getElementById('newItemInput');
-      const addBtn = document.getElementById('addItemBtn');
-      const cancelBtn = document.getElementById('cancelBtn');
+      const input = DOM.input;
+      const addBtn = DOM.addBtn;
+      const cancelBtn = DOM.cancelBtn;
       
       input.disabled = true;
-      input.placeholder = "アイテム名を入力してください（タイムライン上をダブルクリックしてください）";
+      input.placeholder = "タイムライン上をダブルタップで新規作成";
       input.value = "";
       
       addBtn.textContent = "追加"; // ボタンテキストを元に戻す
@@ -588,8 +607,8 @@
       moveable: true,
       zoomable: true,
       
-      zoomMin: 60 * 60 * 1000, // 1時間を最小単位とする（ミリ秒単位）
-      zoomMax: 24 * 60 * 60 * 1000, // 24時間を最大単位とする
+      zoomMin: CONFIG.TIMELINE.DEFAULT_DURATION, // 1時間を最小単位とする（ミリ秒単位）
+      zoomMax: 24 * CONFIG.TIMELINE.DEFAULT_DURATION, // 24時間を最大単位とする
 
       // 時間軸の設定を追加
       timeAxis: {
@@ -599,7 +618,7 @@
 
 
       snap: function (date, scale, step) {
-        return Math.round(date / (15 * 60 * 1000)) * (15 * 60 * 1000); 
+        return Math.round(date / CONFIG.TIMELINE.SNAP_INTERVAL) * CONFIG.TIMELINE.SNAP_INTERVAL; 
       },
 
       // 時間フォーマット設定
@@ -627,30 +646,15 @@
       onRemove: function (item, callback) {
         callback(item);
         deleteItem(item.id);
+        
+        // 削除されたアイテムが編集中だった場合、編集状態をリセット
+        if (editingItemId === item.id) {
+          console.log('編集中のアイテムが削除されたため、編集状態を終了します');
+          resetNewItemForm();
+        }
       },
     };
-
-    // 画面サイズに応じて表示範囲を動的調整
-    function adjustTimelineRange() {
-      const container = document.getElementById('timeline');
-      const containerWidth = container.offsetWidth;
-      
-      // 1時間あたり60pxとして計算
-      const minPixelsPerHour = 60;
-      const maxDisplayableHours = Math.floor(containerWidth / minPixelsPerHour);
-      
-      if (maxDisplayableHours < 12) {
-        // 表示可能時間数が12時間未満の場合、表示範囲を縮小
-        const startHour = 6;
-        const endHour = Math.min(startHour + maxDisplayableHours, 24);
-        
-        timeline.setWindow(
-          `${baseDate}T${startHour.toString().padStart(2, '0')}:00:00`,
-          `${baseDate}T${endHour.toString().padStart(2, '0')}:00:00`
-        );
-      }
-    }
-
+    
     // ウィンドウサイズ変更時に調整
     window.addEventListener('resize', adjustTimelineRange);
 
@@ -727,6 +731,9 @@
       console.log('ページ読み込み完了');
       console.log('vis:', typeof vis);
       initializeApp();
+      
+      // DOM要素をキャッシュ
+      cacheDOMElements();
 
       // 1分ごとに現在時刻ラインを更新
       setInterval(() => {
@@ -738,30 +745,8 @@
 
     // PC用のダブルクリックイベント
     timeline.on('doubleClick', function(props) {
-      if (window.innerWidth > 480) {
+      if (window.innerWidth > CONFIG.BREAKPOINTS.MOBILE) {
         handleDoubleClick(props);
-      }
-    });
-
-    // タッチデバイス用のダブルタップ処理を追加
-    let lastTouchTime = 0;
-    let touchCount = 0;
-
-    timeline.on('click', function(props) {
-      // タッチデバイスでのダブルタップ処理
-      if (window.innerWidth <= 480) {
-        const currentTime = Date.now();
-        touchCount++;
-        
-        if (touchCount === 1) {
-          lastTouchTime = currentTime;
-          setTimeout(() => {
-            touchCount = 0;
-          }, 300);
-        } else if (touchCount === 2 && (currentTime - lastTouchTime) < 300) {
-          touchCount = 0;
-          handleDoubleClick(props);
-        }
       }
     });
 
@@ -776,104 +761,111 @@
       }
     }
 
-    // タイムラインのrangechangeイベントでスケールを動的に調整
-    timeline.on('rangechange', function(properties) {
-        // 画面幅が480px以下の場合のみスケール調整を適用
-        if (window.innerWidth <= 1000) {
+    // クリック（モバイルダブルタップ）
+    timeline.on('click', function(props) {
+        if (window.innerWidth <= CONFIG.BREAKPOINTS.MOBILE) {
+            handleMobileDoubleTap(props);
+        }
+    });
+
+    // モバイルダブルタップ処理を分離
+    function handleMobileDoubleTap(props) {
+        const currentTime = Date.now();
+        touchCount++;
+        
+        if (touchCount === 1) {
+            lastTouchTime = currentTime;
+            setTimeout(() => {
+                touchCount = 0;
+            }, CONFIG.DELAYS.ZOOM_DETECT);
+        } else if (touchCount === 2 && 
+                  (currentTime - lastTouchTime) < CONFIG.DELAYS.ZOOM_DETECT) {
+            touchCount = 0;
+            handleDoubleClick(props);
+        }
+    }
+
+    // ズーム・スケール調整
+    timeline.on('rangechange', handleRangeChange);
+
+    // rangechange処理を分離
+    function handleRangeChange(properties) {
+        isZooming = true;
+        clearTimeout(zoomTimeout);
+        
+        zoomTimeout = setTimeout(() => {
+            isZooming = false;
+            enforceMinWidth();
+        }, CONFIG.DELAYS.ZOOM_DETECT);
+        
+        updateTimeAxisScale(properties);
+    }
+
+    // スケール更新処理を分離
+    function updateTimeAxisScale(properties) {
+        if (window.innerWidth <= CONFIG.BREAKPOINTS.TABLET) {
             const hoursDiff = (properties.end - properties.start) / (60 * 60 * 1000);
             
-            // 表示範囲に応じてスケールを変更
-            if (hoursDiff <= 8) {
-                timeline.setOptions({
-                    timeAxis: { scale: 'hour', step: 1 }  // 1時間単位
-                });
-            } else if (hoursDiff <= 16) {
-                timeline.setOptions({
-                    timeAxis: { scale: 'hour', step: 4 }  // 4時間単位
-                });
-            } else {
-                timeline.setOptions({
-                    timeAxis: { scale: 'hour', step: 6 }  // 6時間単位
-                });
-            }
+            let step = 1;
+            if (hoursDiff > 16) step = 6;
+            else if (hoursDiff > 8) step = 4;
+            
+            timeline.setOptions({
+                timeAxis: { scale: 'hour', step }
+            });
         } else {
-            // モバイル以外では常に1時間単位
             timeline.setOptions({
                 timeAxis: { scale: 'hour', step: 1 }
             });
         }
-    });
+    }
 
-    function adjustTimelineRange() {
-        const container = document.getElementById('timeline');
-        const containerWidth = container.offsetWidth;
+    function calculateDisplayRange(containerWidth, isMobile) {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const minPixelsPerHour = 60;
+        const maxDisplayableHours = Math.floor(containerWidth / minPixelsPerHour);
         
-        // モバイル画面の場合
-        if (window.innerWidth <= 1000) {
-            // 現在時刻を取得
-            const now = new Date();
-            const currentHour = now.getHours();
-            
-            // 表示時間幅の計算（1時間あたり60px）
-            const minPixelsPerHour = 60;
-            const maxDisplayableHours = Math.floor(containerWidth / minPixelsPerHour);
-            
-            // 現在時刻を中心にして表示範囲を設定
+        if (isMobile) {
             const halfHours = Math.floor(maxDisplayableHours / 2);
-            let startHour = currentHour - halfHours;
-            let endHour = currentHour + halfHours;
+            let startHour = Math.max(0, currentHour - halfHours);
+            let endHour = Math.min(24, currentHour + halfHours);
             
-            // 0時〜24時の範囲に収める
-            if (startHour < 0) {
-                startHour = 0;
+            if (startHour === 0) {
                 endHour = Math.min(maxDisplayableHours, 24);
             }
-            if (endHour > 24) {
-                endHour = 24;
+            if (endHour === 24) {
                 startHour = Math.max(24 - maxDisplayableHours, 0);
             }
             
-            // タイムラインの表示範囲を設定
-            timeline.setWindow(
-                `${baseDate}T${startHour.toString().padStart(2, '0')}:00:00`,
-                `${baseDate}T${endHour.toString().padStart(2, '0')}:00:00`
-            );
+            return { startHour, endHour };
         } else {
-            // モバイル以外は従来の動作
-            const maxDisplayableHours = Math.floor(containerWidth / 60);
             if (maxDisplayableHours < 12) {
-                const startHour = 6;
-                const endHour = Math.min(startHour + maxDisplayableHours, 24);
-                
-                timeline.setWindow(
-                    `${baseDate}T${startHour.toString().padStart(2, '0')}:00:00`,
-                    `${baseDate}T${endHour.toString().padStart(2, '0')}:00:00`
-                );
+                return { startHour: 6, endHour: Math.min(18, 24) };
             }
+            return null; // 調整不要
         }
     }
 
-    let isZooming = false;
-    let zoomTimeout;
-
-    // rangechange（ズーム中）
-    timeline.on('rangechange', function() {
-        isZooming = true;
-        clearTimeout(zoomTimeout);
+    function adjustTimelineRange() {
+        const container = document.getElementById('timeline');
+        const isMobile = window.innerWidth <= CONFIG.BREAKPOINTS.TABLET;
+        const range = calculateDisplayRange(container.offsetWidth, isMobile);
         
-        // ズーム終了を検知（300ms操作なしで判定）
-        zoomTimeout = setTimeout(() => {
-            isZooming = false;
-            enforceMinWidth(); // ズーム完了後に一度だけ実行
-        }, 300);
-    });
+        if (range) {
+            timeline.setWindow(
+                `${baseDate}T${range.startHour.toString().padStart(2, '0')}:00:00`,
+                `${baseDate}T${range.endHour.toString().padStart(2, '0')}:00:00`
+            );
+        }
+    }
 
     function enforceMinWidth() {
         // ズーム中は処理をスキップ
         if (isZooming) return;
         
         const minorElements = document.querySelectorAll('.vis-time-axis .vis-grid.vis-minor, .vis-time-axis .vis-text.vis-minor');
-        const minWidth = window.innerWidth <= 480 ? 45 : 60;
+        const minWidth = window.innerWidth <= CONFIG.BREAKPOINTS.MOBILE ? CONFIG.MIN_WIDTH.MOBILE : CONFIG.MIN_WIDTH.DESKTOP;
         
         minorElements.forEach(element => {
             const currentWidth = parseFloat(element.style.width);
@@ -882,13 +874,6 @@
             }
         });
     }
-
-    // MutationObserverの設定を変更
-    const observer = new MutationObserver(function() {
-        if (!isZooming) {
-            enforceMinWidth();
-        }
-    });
 
     // デバッグ用：現在のアイテム一覧を表示
     function showCurrentItems() {
